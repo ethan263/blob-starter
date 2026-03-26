@@ -7,7 +7,8 @@ export default function Home() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [contentType, setContentType] = useState('movie')
-  const [episodeNumber, setEpisodeNumber] = useState('')
+  const [season, setSeason] = useState('')
+  const [episode, setEpisode] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
   
@@ -36,49 +37,25 @@ export default function Home() {
 
     setIsUploading(true)
     try {
-      // 1. Get Signed URL from our Next.js API
-      const urlRes = await fetch('/api/gcs-upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, contentType: file.type })
-      })
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("metadata", JSON.stringify({
+        title,
+        description,
+        contentType,
+        season,
+        episode
+      }));
+
+      const uploadUrl = '/api/upload';
       
-      if (!urlRes.ok) {
-        const errData = await urlRes.json()
-        throw new Error(errData.error || 'Failed to get upload URL')
-      }
-      
-      const { uploadUrl, publicUrl } = await urlRes.json()
-
-      // 2. Upload file directly to Google Cloud Storage using the Signed URL
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
-      })
-
-      if (!uploadRes.ok) {
-        throw new Error('Failed to upload video to Google Cloud Storage')
-      }
-
-      // 3. Send Metadata + Video URL to n8n Webhook
-      const n8nRes = await fetch('/api/n8n-webhook', {
+      const res = await fetch(uploadUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          description,
-          contentType,
-          episodeNumber,
-          videoUrl: publicUrl
-        })
-      })
+        body: formData
+      });
 
-      if (!n8nRes.ok) {
-        const errData = await n8nRes.json()
-        throw new Error(errData.error || 'Failed to trigger n8n automation')
+      if (!res.ok) {
+        throw new Error('Failed to execute webhook automation')
       }
       
       alert(`File uploaded successfully and automation triggered!`)
@@ -88,7 +65,8 @@ export default function Home() {
       setTitle('')
       setDescription('')
       setContentType('movie')
-      setEpisodeNumber('')
+      setSeason('')
+      setEpisode('')
     } catch (error) {
       console.error(error)
       alert((error as Error).message || 'An error occurred during upload.')
@@ -175,10 +153,18 @@ export default function Home() {
 
               <input 
                 type="text" 
-                placeholder="Episode Number (Optional)" 
-                value={episodeNumber}
-                onChange={(e) => setEpisodeNumber(e.target.value)}
-                className="w-full md:w-1/2 bg-white/5 border border-white/20 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-white focus:bg-white/10 transition-all placeholder:text-white/40"
+                placeholder="Season (Optional)" 
+                value={season}
+                onChange={(e) => setSeason(e.target.value)}
+                className="w-full md:w-1/4 bg-white/5 border border-white/20 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-white focus:bg-white/10 transition-all placeholder:text-white/40"
+              />
+
+              <input 
+                type="text" 
+                placeholder="Episode (Optional)" 
+                value={episode}
+                onChange={(e) => setEpisode(e.target.value)}
+                className="w-full md:w-1/4 bg-white/5 border border-white/20 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-white focus:bg-white/10 transition-all placeholder:text-white/40"
               />
             </div>
           </div>
