@@ -7,7 +7,6 @@ export default function Home() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [contentType, setContentType] = useState('movie')
-  const [season, setSeason] = useState('')
   const [episode, setEpisode] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isDragOver, setIsDragOver] = useState(false)
@@ -43,7 +42,6 @@ export default function Home() {
         title,
         description,
         contentType,
-        season,
         episode
       }));
 
@@ -65,7 +63,6 @@ export default function Home() {
       setTitle('')
       setDescription('')
       setContentType('movie')
-      setSeason('')
       setEpisode('')
     } catch (error) {
       console.error(error)
@@ -150,14 +147,6 @@ export default function Home() {
                 <option value="social-media" className="bg-black text-white">Social Media Post</option>
                 <option value="tv-show" className="bg-black text-white">TV Show Element</option>
               </select>
-
-              <input 
-                type="text" 
-                placeholder="Season (Optional)" 
-                value={season}
-                onChange={(e) => setSeason(e.target.value)}
-                className="w-full md:w-1/4 bg-white/5 border border-white/20 text-white rounded-2xl px-5 py-4 focus:outline-none focus:border-white focus:bg-white/10 transition-all placeholder:text-white/40"
-              />
 
               <input 
                 type="text" 
